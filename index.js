@@ -9,6 +9,8 @@ const cors = require("cors");
 const { availableParallelism } = require("os");
 const { error, log } = require("console");
 
+const ObjectId = mongoose.Types.ObjectId;
+
 app.use(express.json());
 app.use(cors());
 
@@ -281,6 +283,55 @@ app.post('/getcart', fetchUser, async (req, res) => {
     let userData = await Users.findOne({ _id: req.user.id });
     res.json(userData.cartData);
 });
+
+///to update the product
+app.put('/updateproduct/:id', async (req, res) => {
+    try {
+      const productId = req.params.id;
+  
+      // Check if the provided ID is in the database
+      const product = await Product.findOne({ id: productId });
+  
+      if (!product) {
+        return res.status(404).json({ success: false, message: 'Product not found' });
+      }
+  
+      // Update only the provided attributes
+      if (req.body.name) product.name = req.body.name;
+      if (req.body.image) product.image = req.body.image;
+      if (req.body.category) product.category = req.body.category;
+      if (req.body.new_price) product.new_price = req.body.new_price;
+      if (req.body.old_price) product.old_price = req.body.old_price;
+  
+      // Save the updated product
+      const updatedProduct = await product.save();
+  
+      res.json({ success: true, updatedProduct });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+  });
+
+// trouver un produit par son id
+app.get('/findproduct/:id', async (req, res) => {
+    try {
+        const productId = req.params.id;
+
+        // Retrieve the product by the custom id field
+        let product = await Product.findOne({ id: productId });
+
+        if (!product) {
+            return res.status(404).json({ success: false, message: 'Product not found' });
+        }
+
+        res.status(200).json({ success: true, product });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Internal Server Error' });
+    }
+});
+
 
 
 
